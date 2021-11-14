@@ -13,7 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Web app that serves pdf_sprinkles."""
 
 import base64
@@ -41,15 +40,14 @@ import tornado.ioloop
 import tornado.web
 import uimodules
 
-
 FLAGS = flags.FLAGS
 flags.DEFINE_integer('port', 8888, 'port to listen to.')
 flags.DEFINE_string('address', '127.0.0.1', 'address to bind to.')
 flags.DEFINE_boolean('debug', False, 'Starts Tornado in debugging mode.')
 flags.DEFINE_string('cookie_secret_id', None,
                     'ID of a cookie secret in Secrets Manager')
-flags.DEFINE_string(
-    'self_link', None, 'If set, displays a self link in the header.')
+flags.DEFINE_string('self_link', None,
+                    'If set, displays a self link in the header.')
 flags.DEFINE_boolean('cloud_logging', False, 'Use cloud logging.')
 
 
@@ -92,15 +90,15 @@ class RecognizeHandler(app_context.RequestHandler):
 
     logging.info('Serving exported PDF')
     encoded_filename = tornado.escape.url_escape(filename, plus=False)
-    self.set_header(
-        'Content-Disposition',
-        f"attachment; filename*=utf-8''{encoded_filename}")
+    self.set_header('Content-Disposition',
+                    f"attachment; filename*=utf-8''{encoded_filename}")
     self.set_header('Content-Type', 'application/pdf')
     self.set_header('Cache-Control', 'private')
 
     while True:
       data = self.output_file.read(65536)
-      if not data: break
+      if not data:
+        break
       self.write(data)
       await self.flush()
 
@@ -111,8 +109,8 @@ class RecognizeHandler(app_context.RequestHandler):
     if 'exc_info' in kwargs:
       _, exc_value, _ = kwargs['exc_info']
       response['message'] = (
-          exc_value.message if isinstance(exc_value, GoogleAPICallError)
-          else str(exc_value))
+          exc_value.message
+          if isinstance(exc_value, GoogleAPICallError) else str(exc_value))
       if self.settings.get('serve_traceback'):
         response['traceback'] = traceback.format_exception(*kwargs['exc_info'])
     else:
@@ -145,8 +143,8 @@ def main(argv: Sequence[str]) -> None:
 
   if FLAGS.cookie_secret_id:
     secret_manager_client = secretmanager.SecretManagerServiceClient()
-    secret_path = secret_manager_client.secret_path(
-        FLAGS.project_id, FLAGS.cookie_secret_id)
+    secret_path = secret_manager_client.secret_path(FLAGS.project_id,
+                                                    FLAGS.cookie_secret_id)
     versions = secret_manager_client.list_secret_versions(request={
         'parent': secret_path,
         'filter': 'state:ENABLED',
