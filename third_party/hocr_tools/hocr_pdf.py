@@ -59,6 +59,9 @@ async def export_pdf(document, mediaboxes, title, output_file):
     for text_page, page in zip(text_pdf.pages, document.pages):
       await asyncio.sleep(0)
       _, _, width, height = text_page.trimbox
+      width = float(width)
+      height = float(height)
+
       layout_fun = img2pdf.get_layout_fun((width, height))
       bg_buf = io.BytesIO()
       img2pdf.convert(page.image.content, layout_fun=layout_fun,
