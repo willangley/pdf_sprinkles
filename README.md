@@ -49,7 +49,8 @@ or invoke `pdf_sprinkles_web.py` and visit it at http://localhost:8888/ :
 USAGE: ./pdf_sprinkles_web.py [flags]
 ```
 
-`./pdf_sprinkles_web.py:`
+`./pdf_sprinkles_web.py`:
+
 * `--address`: Address to bind to.
     (default: '127.0.0.1')
 * `--[no]cloud_logging`: Use cloud logging.
@@ -62,7 +63,12 @@ USAGE: ./pdf_sprinkles_web.py [flags]
     (an integer)
 * `--self_link`: If set, displays a self link in the header.
 
+`app_context`:
+
+* `--expected_audience`: Expected audience for IAP.
+
 `uimodules`:
+
 * `--faq_link`: If set, displays an FAQ link in the footer.
 * `--mailing_list_link`: If set, displays a mailing list link in the footer.
 
@@ -72,7 +78,8 @@ USAGE: ./pdf_sprinkles_web.py [flags]
 USAGE: ./pdf_sprinkles_cli.py [flags]
 ```
 
-`./pdf_sprinkles_cli.py:`
+`./pdf_sprinkles_cli.py`:
+
 * `--input`: Path to input file
 * `--output`: Path to output file
 
@@ -80,13 +87,15 @@ USAGE: ./pdf_sprinkles_cli.py [flags]
 
 These flags can be set for both the CLI and Web frontends.
 
-`document_ai_ocr:`
+`document_ai_ocr`:
+
 *  `--location`: `<us|eu>`: Location of document processor
     (default: 'us')
 * `--processor_id`: ID of document processor
 * `--project_id`: Google Cloud project ID
 
 `third_party.hocr_tools.hocr_pdf`:
+
 * `--min_confidence`: Minimum confidence of lines to include in output.
     (default: '0.9') (a number)
 
@@ -95,9 +104,13 @@ a file and import it with `--flagfile=FILENAME`.
 
 ## Running on App Engine
 
-> IMPORTANT: this is **only** meant to be used in a trusted environment;
-> Document AI requests are much costlier than normal web requests, and this can
-> rapidly turn into a denial-of-wallet attack if running on the public Internet.
+> :warning: processing a document with Document AI OCR costs ≈ 10× – 100× as 
+> much as serving a copy of it from Cloud Storage.
+> 
+> * ⛔ Don't leave this app running on the public Internet. It can rapidly turn
+>   into a denial-of-wallet attack.
+> * ✅ Do set up [Identity-Aware Proxy](#identity-aware-proxy) and restrict 
+>   access to family/friends/organizations you want to buy scans for.
 
 `pdf_sprinkles` ships with configs to run on a Python 3 Standard Environment
 runtime. It uses `supervisord`, with listening port and number of workers
@@ -159,10 +172,22 @@ and needs access to its cookie secret, granted with:
 
 Run `pdf_sprinkles$ gcloud app deploy`.
 
+### Identity-Aware Proxy
+
+PDF Sprinkles supports running behind Identity-Aware Proxy. To use this:
+
+1. Follow the [IAP Quickstart][iap-quickstart] documentation, starting at
+    **Enabling IAP**.
+1. Set `--expected_audience` in `supervisord.conf` to match the IAP Audience.
+1. Deploy the app again with `pdf_sprinkles$ gcloud app deploy`.
+1. Send [test requests][iap-test-requests] to verify everything works properly.
+
 ## License
 
 `pdf_sprinkles` is licensed under the Apache License, Version 2.0.
 
 [Abseil Flags]: https://abseil.io/docs/python/guides/flags
+[iap-quickstart]: https://cloud.google.com/iap/docs/app-engine-quickstart#enabling_iap
+[iap-test-requests]: https://cloud.google.com/iap/docs/query-parameters-and-headers-howto#testing_jwt_verification
 [quickstart]: https://cloud.google.com/document-ai/docs/quickstart-client-libraries?hl=en_US
 [Secret Manager]: https://cloud.google.com/secret-manager
