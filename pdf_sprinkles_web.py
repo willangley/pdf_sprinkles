@@ -56,7 +56,6 @@ flags.DEFINE_boolean('cloud_logging', False, 'Use cloud logging.')
 class MainHandler(app_context.RequestHandler):
   """Display's the application's UI."""
 
-  @iap_auth.require_signed_headers
   def get(self):
     self.render('index.html', self_link=FLAGS.self_link)
 
@@ -76,10 +75,6 @@ class RecognizeHandler(app_context.RequestHandler):
   def initialize(self):
     self.input_file = tempfile.TemporaryFile()
     self.output_file = tempfile.TemporaryFile()
-
-  @iap_auth.require_signed_headers
-  def prepare(self):
-    return super().prepare()
 
   def data_received(self, chunk):
     self.input_file.write(chunk)
@@ -129,10 +124,7 @@ class RecognizeHandler(app_context.RequestHandler):
 class StaticFileHandler(tornado.web.StaticFileHandler,
                         app_context.RequestHandler):
   """Adds App Engine tracing info to static file requests."""
-
-  @iap_auth.require_signed_headers
-  def prepare(self):
-    return super().prepare()
+  pass
 
 
 def main(argv: Sequence[str]) -> None:

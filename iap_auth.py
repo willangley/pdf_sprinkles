@@ -13,15 +13,11 @@
 # limitations under the License.
 """Helpers for Identity-Aware Proxy authorization."""
 
-import functools
 import json
 
 from absl import flags
 from google.auth import jwt
 from tornado.httpclient import AsyncHTTPClient
-
-FLAGS = flags.FLAGS
-flags.DEFINE_string('expected_audience', None, 'Expected audience for IAP.')
 
 
 async def validate_iap_jwt(iap_jwt, expected_audience):
@@ -43,17 +39,3 @@ async def validate_iap_jwt(iap_jwt, expected_audience):
   certs = json.loads(response.body)
   decoded_jwt = jwt.decode(iap_jwt, certs=certs, audience=expected_audience)
   return (decoded_jwt['sub'], decoded_jwt['email'])
-
-
-def require_signed_headers(method):
-  """Decorate methods with this to require that the user be known to IAP."""
-
-  @functools.wraps(method)
-  async def wrapper(self, *args, **kwargs):
-    if FLAGS.expected_audience:
-      iap_jwt = self.request.headers['X-Goog-IAP-JWT-Assertion']
-      _, user_email = await validate_iap_jwt(iap_jwt, FLAGS.expected_audience)
-      self.current_user = user_email
-    return method(self, *args, **kwargs)
-
-  return wrapper
