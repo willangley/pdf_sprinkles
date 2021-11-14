@@ -31,28 +31,34 @@ trace_id = contextvars.ContextVar('trace_id', default=None)
 span_id = contextvars.ContextVar('span_id', default=None)
 
 
+def get_request_data():
+  return http_request.get(), trace_id.get(), span_id.get()
+
+
+def set_request_data(request: tornado.httputil.HTTPServerRequest):
+  http_request.set({
+      'requestMethod': request.method,
+      'requestUrl': request.uri,
+      'requestSize': len(request.body),
+      'userAgent': request.headers.get('User-Agent', ''),
+      'remoteIp': request.remote_ip,
+      'referer': request.headers.get('Referer', ''),
+      'protocol': request.protocol,
+  })
+
+  extracted = _helpers._parse_trace_span(
+      request.headers.get('X-Cloud-Trace-Context'))
+  trace_id.set(extracted[0])
+  span_id.set(extracted[1])
+
+
 class RequestHandler(tornado.web.RequestHandler):
   """Request handler that records trace context."""
 
   def prepare(self):
-    http_request.set({
-        'requestMethod': self.request.method,
-        'requestUrl': self.request.uri,
-        'requestSize': len(self.request.body),
-        'userAgent': self.request.headers.get('User-Agent', ''),
-        'remoteIp': self.request.remote_ip,
-        'referer': self.request.headers.get('Referer', ''),
-        'protocol': self.request.protocol,
-    })
-
-    extracted = _helpers._parse_trace_span(
-        self.request.headers.get('X-Cloud-Trace-Context'))
-    trace_id.set(extracted[0])
-    span_id.set(extracted[1])
+    set_request_data(self.request)
 
 
-def get_request_data():
-  return http_request.get(), trace_id.get(), span_id.get()
 
 
 class LoggingHandler(handlers.AppEngineHandler):
