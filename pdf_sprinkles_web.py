@@ -32,6 +32,7 @@ from google.cloud import secretmanager
 import google.cloud.logging
 from google.cloud.logging.handlers import AppEngineHandler
 from google.cloud.logging.handlers import setup_logging
+import iap_auth
 import pdf_sprinkles
 from third_party.hocr_tools import hocr_pdf
 import tornado.httpserver
@@ -55,6 +56,7 @@ flags.DEFINE_boolean('cloud_logging', False, 'Use cloud logging.')
 class MainHandler(trace_context.RequestHandler):
   """Display's the application's UI."""
 
+  @iap_auth.require_signed_headers
   def get(self):
     self.render('index.html', self_link=FLAGS.self_link)
 
@@ -74,6 +76,10 @@ class RecognizeHandler(trace_context.RequestHandler):
   def initialize(self):
     self.input_file = tempfile.TemporaryFile()
     self.output_file = tempfile.TemporaryFile()
+
+  @iap_auth.require_signed_headers
+  def prepare(self):
+    return super().prepare()
 
   def data_received(self, chunk):
     self.input_file.write(chunk)
@@ -123,7 +129,10 @@ class RecognizeHandler(trace_context.RequestHandler):
 class StaticFileHandler(tornado.web.StaticFileHandler,
                         trace_context.RequestHandler):
   """Adds App Engine tracing info to static file requests."""
-  pass
+
+  @iap_auth.require_signed_headers
+  def prepare(self):
+    return super().prepare()
 
 
 def main(argv: Sequence[str]) -> None:
@@ -199,4 +208,3 @@ def main(argv: Sequence[str]) -> None:
 
 if __name__ == '__main__':
   app.run(main)
-

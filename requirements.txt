@@ -1,7 +1,9 @@
 absl-py==0.14.1
 cachetools==4.2.4
 certifi==2021.10.8
+cffi==1.15.0
 charset-normalizer==2.0.7
+cryptography==35.0.0
 google-api-core==2.1.1
 google-auth==2.3.0
 google-cloud-appengine-logging==0.2.0
@@ -25,6 +27,7 @@ proto-plus==1.19.5
 protobuf==3.18.1
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
+pycparser==2.21
 pyparsing==2.4.7
 python-bidi==0.4.2
 PyYAML==6.0
