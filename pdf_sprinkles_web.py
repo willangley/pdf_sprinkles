@@ -26,6 +26,7 @@ from typing import Sequence
 from absl import app
 from absl import flags
 from absl import logging
+import app_context
 import document_ai_ocr
 from google.api_core.exceptions import GoogleAPICallError
 from google.cloud import secretmanager
@@ -38,7 +39,6 @@ from third_party.hocr_tools import hocr_pdf
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
-import trace_context
 import uimodules
 
 
@@ -53,7 +53,7 @@ flags.DEFINE_string(
 flags.DEFINE_boolean('cloud_logging', False, 'Use cloud logging.')
 
 
-class MainHandler(trace_context.RequestHandler):
+class MainHandler(app_context.RequestHandler):
   """Display's the application's UI."""
 
   @iap_auth.require_signed_headers
@@ -61,7 +61,7 @@ class MainHandler(trace_context.RequestHandler):
     self.render('index.html', self_link=FLAGS.self_link)
 
 
-class WarmupHandler(trace_context.RequestHandler):
+class WarmupHandler(app_context.RequestHandler):
   """Warms up the application for better performance on App Engine."""
 
   def get(self):
@@ -70,7 +70,7 @@ class WarmupHandler(trace_context.RequestHandler):
 
 
 @tornado.web.stream_request_body
-class RecognizeHandler(trace_context.RequestHandler):
+class RecognizeHandler(app_context.RequestHandler):
   """Recognize text in a PDF."""
 
   def initialize(self):
@@ -127,7 +127,7 @@ class RecognizeHandler(trace_context.RequestHandler):
 
 
 class StaticFileHandler(tornado.web.StaticFileHandler,
-                        trace_context.RequestHandler):
+                        app_context.RequestHandler):
   """Adds App Engine tracing info to static file requests."""
 
   @iap_auth.require_signed_headers
@@ -143,7 +143,7 @@ def main(argv: Sequence[str]) -> None:
     cloud_logging_client = google.cloud.logging.Client()
     handler = cloud_logging_client.get_default_handler()
     if isinstance(handler, AppEngineHandler):
-      handler = trace_context.AppEngineHandler(cloud_logging_client)
+      handler = app_context.AppEngineHandler(cloud_logging_client)
     setup_logging(handler)
     py_logging.root.removeHandler(logging.get_absl_handler())
 
