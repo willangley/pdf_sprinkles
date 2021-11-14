@@ -13,7 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Web app that serves pdf_sprinkles."""
 
 import base64
@@ -26,20 +25,20 @@ from typing import Sequence
 from absl import app
 from absl import flags
 from absl import logging
+import app_context
 import document_ai_ocr
 from google.api_core.exceptions import GoogleAPICallError
 from google.cloud import secretmanager
 import google.cloud.logging
 from google.cloud.logging.handlers import AppEngineHandler
 from google.cloud.logging.handlers import setup_logging
+import iap_auth
 import pdf_sprinkles
 from third_party.hocr_tools import hocr_pdf
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
-import trace_context
 import uimodules
-
 
 FLAGS = flags.FLAGS
 flags.DEFINE_integer('port', 8888, 'port to listen to.')
@@ -47,19 +46,19 @@ flags.DEFINE_string('address', '127.0.0.1', 'address to bind to.')
 flags.DEFINE_boolean('debug', False, 'Starts Tornado in debugging mode.')
 flags.DEFINE_string('cookie_secret_id', None,
                     'ID of a cookie secret in Secrets Manager')
-flags.DEFINE_string(
-    'self_link', None, 'If set, displays a self link in the header.')
+flags.DEFINE_string('self_link', None,
+                    'If set, displays a self link in the header.')
 flags.DEFINE_boolean('cloud_logging', False, 'Use cloud logging.')
 
 
-class MainHandler(trace_context.RequestHandler):
+class MainHandler(app_context.RequestHandler):
   """Display's the application's UI."""
 
   def get(self):
     self.render('index.html', self_link=FLAGS.self_link)
 
 
-class WarmupHandler(trace_context.RequestHandler):
+class WarmupHandler(app_context.RequestHandler):
   """Warms up the application for better performance on App Engine."""
 
   def get(self):
@@ -68,7 +67,7 @@ class WarmupHandler(trace_context.RequestHandler):
 
 
 @tornado.web.stream_request_body
-class RecognizeHandler(trace_context.RequestHandler):
+class RecognizeHandler(app_context.RequestHandler):
   """Recognize text in a PDF."""
 
   def initialize(self):
@@ -91,15 +90,15 @@ class RecognizeHandler(trace_context.RequestHandler):
 
     logging.info('Serving exported PDF')
     encoded_filename = tornado.escape.url_escape(filename, plus=False)
-    self.set_header(
-        'Content-Disposition',
-        f"attachment; filename*=utf-8''{encoded_filename}")
+    self.set_header('Content-Disposition',
+                    f"attachment; filename*=utf-8''{encoded_filename}")
     self.set_header('Content-Type', 'application/pdf')
     self.set_header('Cache-Control', 'private')
 
     while True:
       data = self.output_file.read(65536)
-      if not data: break
+      if not data:
+        break
       self.write(data)
       await self.flush()
 
@@ -110,8 +109,8 @@ class RecognizeHandler(trace_context.RequestHandler):
     if 'exc_info' in kwargs:
       _, exc_value, _ = kwargs['exc_info']
       response['message'] = (
-          exc_value.message if isinstance(exc_value, GoogleAPICallError)
-          else str(exc_value))
+          exc_value.message
+          if isinstance(exc_value, GoogleAPICallError) else str(exc_value))
       if self.settings.get('serve_traceback'):
         response['traceback'] = traceback.format_exception(*kwargs['exc_info'])
     else:
@@ -121,7 +120,7 @@ class RecognizeHandler(trace_context.RequestHandler):
 
 
 class StaticFileHandler(tornado.web.StaticFileHandler,
-                        trace_context.RequestHandler):
+                        app_context.RequestHandler):
   """Adds App Engine tracing info to static file requests."""
   pass
 
@@ -134,7 +133,7 @@ def main(argv: Sequence[str]) -> None:
     cloud_logging_client = google.cloud.logging.Client()
     handler = cloud_logging_client.get_default_handler()
     if isinstance(handler, AppEngineHandler):
-      handler = trace_context.AppEngineHandler(cloud_logging_client)
+      handler = app_context.LoggingHandler(cloud_logging_client)
     setup_logging(handler)
     py_logging.root.removeHandler(logging.get_absl_handler())
 
@@ -144,8 +143,8 @@ def main(argv: Sequence[str]) -> None:
 
   if FLAGS.cookie_secret_id:
     secret_manager_client = secretmanager.SecretManagerServiceClient()
-    secret_path = secret_manager_client.secret_path(
-        FLAGS.project_id, FLAGS.cookie_secret_id)
+    secret_path = secret_manager_client.secret_path(FLAGS.project_id,
+                                                    FLAGS.cookie_secret_id)
     versions = secret_manager_client.list_secret_versions(request={
         'parent': secret_path,
         'filter': 'state:ENABLED',
@@ -199,4 +198,3 @@ def main(argv: Sequence[str]) -> None:
 
 if __name__ == '__main__':
   app.run(main)
-

@@ -11,18 +11,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""app_context: cooperating request handler and logging for PDF Sprinkles.
 
-"""Logging handler for App Engine with Tornado request tracing.
-
-Sends logs to the Cloud Logging API with the appropriate resource
-and labels for App Engine logs.
+* Sends logs to the Cloud Logging API with the appropriate resource
+  and labels for App Engine logs.
+* Optionally, when `--expected_audience` is set, enforces Cloud IAP protection
+  for requests to this handler.
 """
 
 import contextvars
 
+from absl import flags
 from google.cloud.logging_v2 import handlers
 from google.cloud.logging_v2.handlers import _helpers
+import iap_auth
 import tornado.web
+
+FLAGS = flags.FLAGS
+flags.DEFINE_string('expected_audience', None, 'Expected audience for IAP.')
 
 _TRACE_ID_LABEL = "appengine.googleapis.com/trace_id"
 
@@ -31,31 +37,43 @@ trace_id = contextvars.ContextVar('trace_id', default=None)
 span_id = contextvars.ContextVar('span_id', default=None)
 
 
-class RequestHandler(tornado.web.RequestHandler):
-  """Request handler that records trace context."""
-
-  def prepare(self):
-    http_request.set({
-        'requestMethod': self.request.method,
-        'requestUrl': self.request.uri,
-        'requestSize': len(self.request.body),
-        'userAgent': self.request.headers.get('User-Agent', ''),
-        'remoteIp': self.request.remote_ip,
-        'referer': self.request.headers.get('Referer', ''),
-        'protocol': self.request.protocol,
-    })
-
-    extracted = _helpers._parse_trace_span(
-        self.request.headers.get('X-Cloud-Trace-Context'))
-    trace_id.set(extracted[0])
-    span_id.set(extracted[1])
-
-
 def get_request_data():
   return http_request.get(), trace_id.get(), span_id.get()
 
 
-class AppEngineHandler(handlers.AppEngineHandler):
+def set_request_data(request: tornado.httputil.HTTPServerRequest):
+  http_request.set({
+      'requestMethod': request.method,
+      'requestUrl': request.uri,
+      'requestSize': len(request.body),
+      'userAgent': request.headers.get('User-Agent', ''),
+      'remoteIp': request.remote_ip,
+      'referer': request.headers.get('Referer', ''),
+      'protocol': request.protocol,
+  })
+
+  extracted = _helpers._parse_trace_span(
+      request.headers.get('X-Cloud-Trace-Context'))
+  trace_id.set(extracted[0])
+  span_id.set(extracted[1])
+
+
+class RequestHandler(tornado.web.RequestHandler):
+  """Request handler that records trace context."""
+
+  async def prepare(self):
+    set_request_data(self.request)
+
+    if FLAGS.expected_audience and self.request.path != '/_ah/warmup':
+      iap_jwt = self.request.headers['X-Goog-IAP-JWT-Assertion']
+      _, user_email = await iap_auth.validate_iap_jwt(iap_jwt,
+                                                      FLAGS.expected_audience)
+      self.current_user = user_email
+
+    return super().prepare()
+
+
+class LoggingHandler(handlers.AppEngineHandler):
   """Sets user overrides for App Engine request logging."""
 
   def emit(self, record):
