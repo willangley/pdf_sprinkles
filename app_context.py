@@ -55,7 +55,7 @@ def get_request_data():
   return http_request.get(), trace_id.get(), span_id.get()
 
 
-class AppEngineHandler(handlers.AppEngineHandler):
+class LoggingHandler(handlers.AppEngineHandler):
   """Sets user overrides for App Engine request logging."""
 
   def emit(self, record):

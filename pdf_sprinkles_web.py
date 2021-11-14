@@ -143,7 +143,7 @@ def main(argv: Sequence[str]) -> None:
     cloud_logging_client = google.cloud.logging.Client()
     handler = cloud_logging_client.get_default_handler()
     if isinstance(handler, AppEngineHandler):
-      handler = app_context.AppEngineHandler(cloud_logging_client)
+      handler = app_context.LoggingHandler(cloud_logging_client)
     setup_logging(handler)
     py_logging.root.removeHandler(logging.get_absl_handler())
 
