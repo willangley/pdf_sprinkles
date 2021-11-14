@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<!--
+ - Copyright 2021 Google LLC
+ -
+ - Licensed under the Apache License, Version 2.0 (the "License");
+ - you may not use this file except in compliance with the License.
+ - You may obtain a copy of the License at
+ -
+ -     https://www.apache.org/licenses/LICENSE-2.0
+ -
+ - Unless required by applicable law or agreed to in writing, software
+ - distributed under the License is distributed on an "AS IS" BASIS,
+ - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ - See the License for the specific language governing permissions and
+ - limitations under the License.
+ -->
+<meta charset="utf-8">
+<link rel="stylesheet" href="{{ static_url('style.css') }}" type="text/css">
+<title>PDF Sprinkles &mdash; makes PDFs searchable</title>
+<header>
+{% if self_link %}
+  <span class="self-link">(<a href="http://{{ self_link }}">{{ self_link }}</a>)</span>
+{% end %}
+<h1>PDF Sprinkles<span class="visually-hidden"> </span><sup>Beta</sup></h1>
+<p><span class="emoji">🎊</span><em>sprinkles text in your PDFs</em>
+</header>
+<main>
+<div class="form-container">
+<section class="form-border">
+<h2 class="form-title">Upload</h2>
+<p class="form-instructions">Fields marked with a
+  <span class="required">*</span> are required.</p>
+<form id="pdf-form" class="form-spacer"
+  action="{{ reverse_url('recognize') }}">
+{% module xsrf_form_html() %}
+</form>
+<span class="required">*</span>
+<label for="pdf">Choose a PDF</label>
+<input class="form-input" form="pdf-form" type="file" id="pdf" name="pdf"
+  accept="application/pdf" required>
+<div class="form-spacer-tall"></div>
+<input class="form-submit" form="pdf-form" type="submit" value="Submit">
+</section>
+<output class="alert visually-hidden">
+  <p class="alert-title"></p>
+  <p class="alert-text"></p>
+  <button class="dismiss" aria-label="Close" hidden>×</button>
+</output>
+</div>
+<h2>About</h2>
+<p>PDF Sprinkles makes PDFs searchable using Google Cloud
+  <a href="https://cloud.google.com/document-ai/">Document AI</a>. It forgets
+  uploaded PDFs as soon as it returns a searchable version to you.
+</main>
+<aside>
+  {% module Details() %}
+</aside>
+<script src="{{ static_url('pdf_sprinkles.js') }}" type="text/javascript"></script>
