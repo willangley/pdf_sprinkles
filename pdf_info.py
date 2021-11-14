@@ -52,7 +52,7 @@ def get_mediaboxes(pdf: Pdf):
     if rotate == 90 or rotate == 270:
       width, height = height, width
 
-    mediaboxes.append((width, height))
+    mediaboxes.append((float(width), float(height)))
   return mediaboxes
 
 
