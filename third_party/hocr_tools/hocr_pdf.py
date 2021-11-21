@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Creates a searchable PDF from a Document AI API response.
 
 Originally created a searchable PDF from a pile of HOCR + JPEG, as output by
@@ -31,9 +30,8 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen.canvas import Canvas
 
-
 FLAGS = flags.FLAGS
-flags.DEFINE_float('min_confidence', 0.9, 'Minimum confidence of lines to '
+flags.DEFINE_float('min_confidence', 0.9, 'Minimum confidence of tokens to '
                    'include in output.')
 
 
@@ -64,8 +62,8 @@ async def export_pdf(document, mediaboxes, title, output_file):
 
       layout_fun = img2pdf.get_layout_fun((width, height))
       bg_buf = io.BytesIO()
-      img2pdf.convert(page.image.content, layout_fun=layout_fun,
-                      outputstream=bg_buf)
+      img2pdf.convert(
+          page.image.content, layout_fun=layout_fun, outputstream=bg_buf)
       with Pdf.open(bg_buf) as bg_pdf:
         text_page.add_underlay(bg_pdf.pages[0])
 
@@ -75,9 +73,6 @@ async def export_pdf(document, mediaboxes, title, output_file):
 def add_text_layer(pdf, document, page, width, height):
   """Draws an invisible text layer for OCR data."""
   for line in page.lines:
-    if line.layout.confidence < FLAGS.min_confidence:
-      continue
-
     left, top, _, bottom = bbox(line.layout)
     left *= width
     top *= height
@@ -86,9 +81,11 @@ def add_text_layer(pdf, document, page, width, height):
     # Heuristic from old hocr-pdf: assume 30% of line is descenders
     base = bottom - 0.7 * (bottom - top)
 
-    tokens = [token for token in page.tokens
-              if (start_index(token.layout) >= start_index(line.layout) and
-                  end_index(token.layout) <= end_index(line.layout))]
+    tokens = [
+        token for token in page.tokens
+        if (start_index(token.layout) >= start_index(line.layout) and
+            end_index(token.layout) <= end_index(line.layout))
+    ]
 
     text = pdf.beginText()
     text.setTextRenderMode(3)  # invisible
@@ -96,6 +93,9 @@ def add_text_layer(pdf, document, page, width, height):
     text.setTextOrigin(left, height - base)
 
     for token in tokens:
+      if token.layout.confidence < FLAGS.min_confidence:
+        continue
+
       rawtext = get_text(token.layout, document)
       if not rawtext:
         continue
@@ -143,9 +143,7 @@ def get_text(doc_element: documentai.types.Document.Page.Layout,
   for segment in doc_element.text_anchor.text_segments:
     text_start_index = (
         int(segment.start_index)
-        if segment in doc_element.text_anchor.text_segments
-        else 0
-    )
+        if segment in doc_element.text_anchor.text_segments else 0)
     text_end_index = int(segment.end_index)
     response += document.text[text_start_index:text_end_index]
   return response
@@ -158,5 +156,5 @@ def load_noto_sans():
   global _fonts_loaded
   if not _fonts_loaded:
     _fonts_loaded = True
-    pdfmetrics.registerFont(TTFont(
-        'Noto Sans', 'third_party/noto-fonts/NotoSans-Regular.ttf'))
+    pdfmetrics.registerFont(
+        TTFont('Noto Sans', 'third_party/noto-fonts/NotoSans-Regular.ttf'))
