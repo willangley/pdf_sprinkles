@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """pdf_sprinkles: sprinkles text in your PDFs.
 
 More seriously, it converts an PDF to a searchable PDF using Google Cloud
@@ -31,8 +30,8 @@ from third_party.hocr_tools import hocr_pdf
 import tornado.process
 
 
-async def convert(
-    input_file: BinaryIO, input_file_name: str, output_file: BinaryIO):
+async def convert(input_file: BinaryIO, input_file_name: str,
+                  output_file: BinaryIO):
   """Converts an image-only PDF into a PDF with OCR text."""
   recognizer = document_ai_ocr.recognize(input_file)
 
@@ -43,7 +42,8 @@ async def convert(
   # available in the App Engine runtime. So we limit reads with asyncio instead.
   pdf_info = tornado.process.Subprocess(
       [sys.executable, '-m', 'pdf_info'],
-      stdin=input_file, stdout=tornado.process.Subprocess.STREAM,
+      stdin=input_file,
+      stdout=tornado.process.Subprocess.STREAM,
       stderr=subprocess.DEVNULL)
   pdf_info_reader = pdf_info.stdout.read_bytes(4 * 1024, partial=True)
   pdf_info_waiter = asyncio.wait_for(pdf_info.wait_for_exit(), timeout=1)
