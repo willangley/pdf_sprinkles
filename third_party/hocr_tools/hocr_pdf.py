@@ -31,7 +31,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen.canvas import Canvas
 
 FLAGS = flags.FLAGS
-flags.DEFINE_float('min_confidence', 0.9, 'Minimum confidence of lines to '
+flags.DEFINE_float('min_confidence', 0.9, 'Minimum confidence of tokens to '
                    'include in output.')
 
 
@@ -73,9 +73,6 @@ async def export_pdf(document, mediaboxes, title, output_file):
 def add_text_layer(pdf, document, page, width, height):
   """Draws an invisible text layer for OCR data."""
   for line in page.lines:
-    if line.layout.confidence < FLAGS.min_confidence:
-      continue
-
     left, top, _, bottom = bbox(line.layout)
     left *= width
     top *= height
@@ -96,6 +93,9 @@ def add_text_layer(pdf, document, page, width, height):
     text.setTextOrigin(left, height - base)
 
     for token in tokens:
+      if token.layout.confidence < FLAGS.min_confidence:
+        continue
+
       rawtext = get_text(token.layout, document)
       if not rawtext:
         continue
