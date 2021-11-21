@@ -7,7 +7,8 @@ __pycache__/
 env/
 
 # Local configuration
+.DS_Store
+.python-version
 app.yaml
 flagfile
 supervisord.conf
-
