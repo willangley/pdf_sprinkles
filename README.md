@@ -94,6 +94,11 @@ These flags can be set for both the CLI and Web frontends.
 * `--processor_id`: ID of document processor
 * `--project_id`: Google Cloud project ID
 
+`pdf_sprinkles`:
+
+* `--pdf_info_timeout`: Timeout in seconds for pdf_info.
+    (default: 1)
+
 `third_party.hocr_tools.hocr_pdf`:
 
 * `--min_confidence`: Minimum confidence of lines to include in output.
