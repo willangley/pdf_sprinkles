@@ -23,11 +23,15 @@ import subprocess
 import sys
 from typing import BinaryIO
 
+from absl import flags
 from absl import logging
 import document_ai_ocr
 from google.cloud import documentai_v1 as documentai
 from third_party.hocr_tools import hocr_pdf
 import tornado.process
+
+FLAGS = flags.FLAGS
+flags.DEFINE_integer('pdf_info_timeout', 1, 'Timeout in seconds for pdf_info.')
 
 
 async def convert(input_file: BinaryIO, input_file_name: str,
@@ -46,7 +50,8 @@ async def convert(input_file: BinaryIO, input_file_name: str,
       stdout=tornado.process.Subprocess.STREAM,
       stderr=subprocess.DEVNULL)
   pdf_info_reader = pdf_info.stdout.read_bytes(4 * 1024, partial=True)
-  pdf_info_waiter = asyncio.wait_for(pdf_info.wait_for_exit(), timeout=1)
+  pdf_info_waiter = asyncio.wait_for(
+      pdf_info.wait_for_exit(), timeout=FLAGS.pdf_info_timeout)
 
   try:
     for coro in asyncio.as_completed(
