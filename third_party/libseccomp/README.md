@@ -17,7 +17,7 @@ add a few extra steps:
 - Configure, `(env) $ ./configure --enable-python`
 - Make, `(env) $ make V=1`
 - `(env) $ cd src/python`
-- `(env) $ VERSION_RELEASE=2.5.2 pip wheel`
+- `(env) $ VERSION_RELEASE=2.5.2 pip wheel .`
 
 ## License
 
