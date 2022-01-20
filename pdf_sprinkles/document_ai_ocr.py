@@ -13,7 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Converts an PDF to a searchable PDF using Google Cloud Document AI."""
 
 import os
@@ -23,13 +22,11 @@ from absl import flags
 from absl import logging
 from google.cloud import documentai_v1 as documentai
 
-
 FLAGS = flags.FLAGS
 flags.DEFINE_string('project_id', None, 'Google Cloud project ID')
 flags.DEFINE_enum('location', 'us', ['us', 'eu'],
                   'Location of document processor')
 flags.DEFINE_string('processor_id', None, 'ID of document processor')
-
 
 _documentai_client = None
 _max_size = 20 * 1024 * 1024

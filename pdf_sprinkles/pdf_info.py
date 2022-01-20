@@ -13,7 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """pdf_info.py: gets information from a PDF."""
 
 import json
@@ -25,7 +24,6 @@ from absl import app
 from absl import flags
 from pikepdf import Pdf
 import seccomp
-
 
 FLAGS = flags.FLAGS
 flags.DEFINE_bool('sandbox', True, 'Runs PDF parsing inside a seccomp sandbox.')
@@ -64,8 +62,8 @@ def main(argv: Sequence[str]) -> None:
   if FLAGS.sandbox:
     f = seccomp.SyscallFilter(defaction=seccomp.KILL)
     f.add_rule(seccomp.ALLOW, 'brk')
-    f.add_rule(seccomp.ALLOW, 'futex',
-               seccomp.Arg(1, seccomp.EQ, 1))  # FUTEX_WAKE
+    f.add_rule(seccomp.ALLOW, 'futex', seccomp.Arg(1, seccomp.EQ,
+                                                   1))  # FUTEX_WAKE
     f.add_rule(seccomp.ALLOW, 'futex',
                seccomp.Arg(1, seccomp.EQ, 1 | 128))  # FUTEX_WAKE_PRIVATE
 
@@ -88,8 +86,7 @@ def main(argv: Sequence[str]) -> None:
     # Allow Python to allocate and unallocate memory.
     # https://github.com/seccomp/libseccomp/commit/4f34c6eb17c2ffcb0fce5911ddbc161d97517476
     f.add_rule(
-        seccomp.ALLOW, 'mmap',
-        seccomp.Arg(0, seccomp.EQ, 0),
+        seccomp.ALLOW, 'mmap', seccomp.Arg(0, seccomp.EQ, 0),
         seccomp.Arg(3, seccomp.EQ, mmap.MAP_PRIVATE | mmap.MAP_ANONYMOUS))
     f.add_rule(seccomp.ALLOW, 'munmap')
 
