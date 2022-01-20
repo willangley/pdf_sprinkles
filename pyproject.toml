@@ -33,6 +33,10 @@ seccomp = [
 
 [tool.poetry.dev-dependencies]
 yapf = "^0.32.0"
+toml = "^0.10.2"
+
+[tool.yapf]
+based_on_style = "yapf"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
