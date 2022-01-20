@@ -11,12 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """uimodules: modules for pdf_sprinkles_web."""
 
 from absl import flags
 import tornado.web
-
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string('faq_link', None,
@@ -26,6 +24,9 @@ flags.DEFINE_string('mailing_list_link', None,
 
 
 class Details(tornado.web.UIModule):
+
   def render(self):
-    return self.render_string("details.html", faq_link=FLAGS.faq_link,
-                              mailing_list_link=FLAGS.mailing_list_link)
+    return self.render_string(
+        "details.html",
+        faq_link=FLAGS.faq_link,
+        mailing_list_link=FLAGS.mailing_list_link)

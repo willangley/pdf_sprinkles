@@ -24,7 +24,7 @@ import contextvars
 from absl import flags
 from google.cloud.logging_v2 import handlers
 from google.cloud.logging_v2.handlers import _helpers
-import iap_auth
+from pdf_sprinkles import iap_auth
 import tornado.web
 
 FLAGS = flags.FLAGS

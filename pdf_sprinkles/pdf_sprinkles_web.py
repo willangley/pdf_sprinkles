@@ -25,20 +25,19 @@ from typing import Sequence
 from absl import app
 from absl import flags
 from absl import logging
-import app_context
-import document_ai_ocr
 from google.api_core.exceptions import GoogleAPICallError
 from google.cloud import secretmanager
 import google.cloud.logging
 from google.cloud.logging.handlers import AppEngineHandler
 from google.cloud.logging.handlers import setup_logging
-import iap_auth
+from hocr_tools import hocr_pdf
 import pdf_sprinkles
-from third_party.hocr_tools import hocr_pdf
+from pdf_sprinkles import app_context
+from pdf_sprinkles import document_ai_ocr
+from pdf_sprinkles import uimodules
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
-import uimodules
 
 FLAGS = flags.FLAGS
 flags.DEFINE_integer('port', 8888, 'port to listen to.')
@@ -175,8 +174,8 @@ def main(argv: Sequence[str]) -> None:
           (r'/recognize', RecognizeHandler, None, 'recognize'),
       ],
       static_handler_class=StaticFileHandler,
-      static_path=os.path.join(os.path.dirname(__file__), 'static'),
-      template_path=os.path.join(os.path.dirname(__file__), 'templates'),
+      static_path=os.path.join(os.path.dirname(__file__), '..', 'static'),
+      template_path=os.path.join(os.path.dirname(__file__), '..', 'templates'),
       debug=FLAGS.debug,
       **settings,
   )

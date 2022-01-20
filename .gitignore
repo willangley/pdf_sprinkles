@@ -12,3 +12,6 @@ env/
 app.yaml
 flagfile
 supervisord.conf
+
+# Build outputs
+dist/

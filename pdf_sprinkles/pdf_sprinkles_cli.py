@@ -13,7 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Converts an PDF to a searchable PDF using Google Cloud Document AI."""
 
 import asyncio
@@ -25,7 +24,6 @@ from absl import app
 from absl import flags
 import pdf_sprinkles
 
-
 FLAGS = flags.FLAGS
 flags.DEFINE_string('input', None, 'Path to input file')
 flags.DEFINE_string('output', None, 'Path to output file')
@@ -35,8 +33,9 @@ def main(argv: Sequence[str]) -> None:
   if len(argv) > 1:
     raise app.UsageError('Too many command-line arguments.')
 
-  with open(FLAGS.input, 'rb') as input_file, open(
-      FLAGS.output, 'wb') if FLAGS.output else open(
+  with open(
+      FLAGS.input,
+      'rb') as input_file, open(FLAGS.output, 'wb') if FLAGS.output else open(
           sys.stdout.fileno(), 'wb', closefd=False) as output_file:
     asyncio.run(
         pdf_sprinkles.convert(input_file, os.path.basename(FLAGS.input),
