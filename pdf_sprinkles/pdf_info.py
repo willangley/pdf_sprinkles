@@ -17,6 +17,7 @@
 """pdf_info.py: gets information from a PDF."""
 
 import json
+import mmap
 import sys
 from typing import Sequence
 
@@ -83,6 +84,15 @@ def main(argv: Sequence[str]) -> None:
     f.add_rule(seccomp.ALLOW, 'fstat',
                seccomp.Arg(0, seccomp.EQ, sys.stdin.fileno()))  # App Engine
     f.add_rule(seccomp.ALLOW, 'exit_group')
+
+    # Allow Python to allocate and unallocate memory.
+    # https://github.com/seccomp/libseccomp/commit/4f34c6eb17c2ffcb0fce5911ddbc161d97517476
+    f.add_rule(
+        seccomp.ALLOW, 'mmap',
+        seccomp.Arg(0, seccomp.EQ, 0),
+        seccomp.Arg(3, seccomp.EQ, mmap.MAP_PRIVATE | mmap.MAP_ANONYMOUS))
+    f.add_rule(seccomp.ALLOW, 'munmap')
+
     f.load()
 
   with Pdf.open(sys.stdin.buffer) as pdf:

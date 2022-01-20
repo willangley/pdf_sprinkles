@@ -1,0 +1,39 @@
+[tool.poetry]
+name = "pdf_sprinkles"
+version = "0.1.0"
+description = "Sprinkles text in your PDFs."
+authors = ["Will Angley <willangley@google.com>"]
+license = "Apache-2.0"
+packages = [
+    {include = "pdf_sprinkles"},
+    {include = "hocr_tools", from="third_party"},
+]
+include = [
+    "static/*",
+    "templates/*",
+    "third_party/**/*",
+]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+absl-py = "^1.0.0"
+google-cloud-documentai = "^1.2.1"
+google-cloud-logging = "^2.7.0"
+pikepdf = "^4.3.1"
+tornado = "^6.1"
+google-auth = "^2.3.3"
+google-cloud-secret-manager = "^2.8.0"
+python-bidi = "^0.4.2"
+img2pdf = "^0.4.3"
+reportlab = "^3.6.5"
+seccomp = [
+  {path = "third_party/libseccomp/seccomp-2.5.2-cp39-cp39-linux_x86_64.whl", markers = "platform_machine == 'x86_64'"},
+  {path = "third_party/libseccomp/seccomp-2.5.2-cp39-cp39-linux_aarch64.whl", markers = "platform_machine == 'aarch64'"},
+]
+
+[tool.poetry.dev-dependencies]
+yapf = "^0.32.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
