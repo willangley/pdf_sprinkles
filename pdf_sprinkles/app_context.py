@@ -20,17 +20,17 @@
 """
 
 import contextvars
+import re
 
 from absl import flags
-from google.cloud.logging_v2 import handlers
-from google.cloud.logging_v2.handlers import _helpers
+from google.cloud.logging import handlers
 from pdf_sprinkles import iap_auth
 import tornado.web
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string('expected_audience', None, 'Expected audience for IAP.')
 
-_TRACE_ID_LABEL = "appengine.googleapis.com/trace_id"
+_TRACE_ID_LABEL = 'appengine.googleapis.com/trace_id'
 
 http_request = contextvars.ContextVar('http_request', default={})
 trace_id = contextvars.ContextVar('trace_id', default=None)
@@ -41,7 +41,18 @@ def get_request_data():
   return http_request.get(), trace_id.get(), span_id.get()
 
 
+def parse_trace_span(header: str):
+  """Parses a Cloud Tracing span from its header."""
+  spans = re.match(r'^(?P<trace_id>\w+)(?:/(?P<span_id>\w+))?', header)
+  if not spans:
+    return None, None
+  else:
+    return (spans.groupdict().get('trace_id'),
+            spans.groupdict().get('span_id'))
+
+
 def set_request_data(request: tornado.httputil.HTTPServerRequest):
+  """Records request data in context vars for async logging."""
   http_request.set({
       'requestMethod': request.method,
       'requestUrl': request.uri,
@@ -52,8 +63,7 @@ def set_request_data(request: tornado.httputil.HTTPServerRequest):
       'protocol': request.protocol,
   })
 
-  extracted = _helpers._parse_trace_span(
-      request.headers.get('X-Cloud-Trace-Context'))
+  extracted = parse_trace_span(request.headers.get('X-Cloud-Trace-Context', ''))
   trace_id.set(extracted[0])
   span_id.set(extracted[1])
 
