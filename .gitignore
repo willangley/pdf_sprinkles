@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Packaging
+*.egg-info/
+dist/
+
 # Virtual environment
 env/
 

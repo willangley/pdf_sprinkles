@@ -1,0 +1,4 @@
+prune env
+graft static
+graft templates
+prune third_party/libseccomp
