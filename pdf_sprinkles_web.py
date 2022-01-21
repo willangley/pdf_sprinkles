@@ -37,6 +37,7 @@ from pdf_sprinkles.convert import convert
 from third_party.hocr_tools import hocr_pdf
 import tornado.httpserver
 import tornado.ioloop
+from tornado.platform.asyncio import AsyncIOMainLoop
 import tornado.web
 
 FLAGS = flags.FLAGS
@@ -127,6 +128,8 @@ class StaticFileHandler(tornado.web.StaticFileHandler,
 def main(argv: Sequence[str]) -> None:
   if len(argv) > 1:
     raise app.UsageError('Too many command-line arguments.')
+
+  AsyncIOMainLoop().install()
 
   if FLAGS.cloud_logging:
     cloud_logging_client = google.cloud.logging.Client()
