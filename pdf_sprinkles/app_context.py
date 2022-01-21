@@ -56,7 +56,7 @@ def set_request_data(request: tornado.httputil.HTTPServerRequest):
   http_request.set({
       'requestMethod': request.method,
       'requestUrl': request.uri,
-      'requestSize': len(request.body),
+      'requestSize': len(request.body) if isinstance(request.body, str) else 0,
       'userAgent': request.headers.get('User-Agent', ''),
       'remoteIp': request.remote_ip,
       'referer': request.headers.get('Referer', ''),
