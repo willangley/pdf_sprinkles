@@ -24,6 +24,7 @@ from typing import Sequence
 from absl import app
 from absl import flags
 from pdf_sprinkles.convert import convert
+from tornado.platform.asyncio import AsyncIOMainLoop
 
 
 FLAGS = flags.FLAGS
@@ -34,6 +35,8 @@ flags.DEFINE_string('output', None, 'Path to output file')
 def main(argv: Sequence[str]) -> None:
   if len(argv) > 1:
     raise app.UsageError('Too many command-line arguments.')
+
+  AsyncIOMainLoop().install()
 
   with open(FLAGS.input, 'rb') as input_file, open(
       FLAGS.output, 'wb') if FLAGS.output else open(
