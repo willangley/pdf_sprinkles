@@ -162,7 +162,8 @@ def main(argv: Sequence[str]) -> None:
           base64.b64decode(response.payload.data))
 
     if not cookie_secrets:
-      logging.fatal('No enabled versions found for secret %s', secret_path)
+      raise app.UsageError(
+          f'No enabled versions found for secret {secret_path}')
 
     settings.update({
         'cookie_secret': cookie_secrets,
