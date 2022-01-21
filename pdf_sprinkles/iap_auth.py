@@ -15,7 +15,6 @@
 
 import json
 
-from absl import flags
 from google.auth import jwt
 from tornado.httpclient import AsyncHTTPClient
 
@@ -23,15 +22,15 @@ from tornado.httpclient import AsyncHTTPClient
 async def validate_iap_jwt(iap_jwt, expected_audience):
   """Validate an IAP JWT.
 
-    Args:
-      iap_jwt: The contents of the X-Goog-IAP-JWT-Assertion header.
-      expected_audience: The Signed Header JWT audience. See
-          https://cloud.google.com/iap/docs/signed-headers-howto
-          for details on how to get this value.
+  Args:
+    iap_jwt: The contents of the X-Goog-IAP-JWT-Assertion header.
+    expected_audience: The Signed Header JWT audience. See
+        https://cloud.google.com/iap/docs/signed-headers-howto
+        for details on how to get this value.
 
-    Returns:
-      (user_id, user_email).
-    """
+  Returns:
+    (user_id, user_email).
+  """
 
   http_client = AsyncHTTPClient()
   response = await http_client.fetch(
