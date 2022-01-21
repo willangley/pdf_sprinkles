@@ -25,14 +25,12 @@ from typing import BinaryIO
 
 from absl import flags
 from pdf_sprinkles import document_ai_ocr
+from pdf_sprinkles import resources
 from third_party.hocr_tools import hocr_pdf
 
 
 FLAGS = flags.FLAGS
-flags.DEFINE_multi_string(
-    'pdf_info_command',
-    [sys.executable, '-m', 'pdf_sprinkles.pdf_info'] if sys.executable else [],
-    'Command to run pdf_info.')
+flags.DEFINE_string('pdf_info_command', '', 'Command to run pdf_info.')
 flags.DEFINE_integer('pdf_info_timeout', 1, 'Timeout in seconds for pdf_info.')
 
 
@@ -41,9 +39,14 @@ async def convert(input_file: BinaryIO, input_file_name: str,
   """Converts an image-only PDF into a PDF with OCR text."""
   document = await document_ai_ocr.recognize(input_file)
 
+  if FLAGS.pdf_info_command:
+    pdf_info_command = [resources.GetResourceFilename(FLAGS.pdf_info_command)]
+  else:
+    pdf_info_command = [sys.executable, '-m', 'pdf_sprinkles.pdf_info']
+
   # Read mediaboxes from PDFs in a sandbox, limiting how long we'll let it run.
   pdf_info = await asyncio.create_subprocess_exec(
-      *FLAGS.pdf_info_command,
+      *pdf_info_command,
       stdin=input_file,
       stdout=asyncio.subprocess.PIPE,
       stderr=subprocess.DEVNULL)
