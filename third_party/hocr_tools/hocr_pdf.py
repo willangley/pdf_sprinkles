@@ -26,6 +26,7 @@ from absl import logging
 from bidi.algorithm import get_display
 from google.cloud import documentai_v1 as documentai
 import img2pdf
+from pdf_sprinkles import resources
 from pikepdf import Pdf
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -33,6 +34,9 @@ from reportlab.pdfgen.canvas import Canvas
 
 
 FLAGS = flags.FLAGS
+flags.DEFINE_multi_string(
+    'font', ['Noto Sans', 'third_party/noto-fonts/NotoSans-Regular.ttf'],
+    'Font to include in input.')
 flags.DEFINE_float('min_confidence', 0.9, 'Minimum confidence of lines to '
                    'include in output.')
 
@@ -158,5 +162,6 @@ def load_noto_sans():
   global _fonts_loaded
   if not _fonts_loaded:
     _fonts_loaded = True
-    pdfmetrics.registerFont(TTFont(
-        'Noto Sans', 'third_party/noto-fonts/NotoSans-Regular.ttf'))
+
+    font, path = FLAGS.font
+    pdfmetrics.registerFont(TTFont(font, resources.GetResourceFilename(path)))
