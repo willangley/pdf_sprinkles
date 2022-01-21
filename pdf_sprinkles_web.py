@@ -25,20 +25,19 @@ from typing import Sequence
 from absl import app
 from absl import flags
 from absl import logging
-import app_context
-import document_ai_ocr
 from google.api_core.exceptions import GoogleAPICallError
 from google.cloud import secretmanager
 import google.cloud.logging
 from google.cloud.logging.handlers import AppEngineHandler
 from google.cloud.logging.handlers import setup_logging
-import iap_auth
-import pdf_sprinkles
+from pdf_sprinkles import app_context
+from pdf_sprinkles import document_ai_ocr
+from pdf_sprinkles import uimodules
+from pdf_sprinkles.convert import convert
 from third_party.hocr_tools import hocr_pdf
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
-import uimodules
 
 FLAGS = flags.FLAGS
 flags.DEFINE_integer('port', 8888, 'port to listen to.')
@@ -79,7 +78,7 @@ class RecognizeHandler(app_context.RequestHandler):
 
   async def post(self):
     filename = self.get_argument('filename')
-    await pdf_sprinkles.convert(self.input_file, filename, self.output_file)
+    await convert(self.input_file, filename, self.output_file)
 
     self.output_file.seek(0, os.SEEK_END)
     output_size = self.output_file.tell()

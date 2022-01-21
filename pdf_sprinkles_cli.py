@@ -23,7 +23,7 @@ from typing import Sequence
 
 from absl import app
 from absl import flags
-import pdf_sprinkles
+from pdf_sprinkles.convert import convert
 
 
 FLAGS = flags.FLAGS
@@ -39,8 +39,7 @@ def main(argv: Sequence[str]) -> None:
       FLAGS.output, 'wb') if FLAGS.output else open(
           sys.stdout.fileno(), 'wb', closefd=False) as output_file:
     asyncio.run(
-        pdf_sprinkles.convert(input_file, os.path.basename(FLAGS.input),
-                              output_file))
+        convert(input_file, os.path.basename(FLAGS.input), output_file))
 
 
 if __name__ == '__main__':

@@ -25,8 +25,8 @@ from typing import BinaryIO
 
 from absl import flags
 from absl import logging
-import document_ai_ocr
 from google.cloud import documentai_v1 as documentai
+from pdf_sprinkles import document_ai_ocr
 from third_party.hocr_tools import hocr_pdf
 import tornado.process
 
@@ -45,7 +45,7 @@ async def convert(input_file: BinaryIO, input_file_name: str,
   # Normally you'd use `head` in a pipeline to limit reads, but it's not
   # available in the App Engine runtime. So we limit reads with asyncio instead.
   pdf_info = tornado.process.Subprocess(
-      [sys.executable, '-m', 'pdf_info'],
+      [sys.executable, '-m', 'pdf_sprinkles.pdf_info'],
       stdin=input_file,
       stdout=tornado.process.Subprocess.STREAM,
       stderr=subprocess.DEVNULL)
