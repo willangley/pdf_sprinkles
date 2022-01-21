@@ -31,6 +31,10 @@ from third_party.hocr_tools import hocr_pdf
 import tornado.process
 
 FLAGS = flags.FLAGS
+flags.DEFINE_multi_string(
+    'pdf_info_command',
+    [sys.executable, '-m', 'pdf_sprinkles.pdf_info'] if sys.executable else [],
+    'Command to run pdf_info.')
 flags.DEFINE_integer('pdf_info_timeout', 1, 'Timeout in seconds for pdf_info.')
 
 
@@ -45,7 +49,7 @@ async def convert(input_file: BinaryIO, input_file_name: str,
   # Normally you'd use `head` in a pipeline to limit reads, but it's not
   # available in the App Engine runtime. So we limit reads with asyncio instead.
   pdf_info = tornado.process.Subprocess(
-      [sys.executable, '-m', 'pdf_sprinkles.pdf_info'],
+      FLAGS.pdf_info_command,
       stdin=input_file,
       stdout=tornado.process.Subprocess.STREAM,
       stderr=subprocess.DEVNULL)
