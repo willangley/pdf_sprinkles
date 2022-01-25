@@ -27,6 +27,7 @@ from absl import flags
 from absl import logging
 from google.api_core.exceptions import GoogleAPICallError
 from google.cloud import secretmanager
+from google.cloud.secretmanager_v1.types import SecretVersion
 import google.cloud.logging
 from google.cloud.logging.handlers import AppEngineHandler
 from google.cloud.logging.handlers import setup_logging
@@ -125,6 +126,11 @@ class StaticFileHandler(tornado.web.StaticFileHandler,
   pass
 
 
+def version_from_secret_version_path(path: str):
+  _, version = path.rsplit('/', 1)
+  return int(version)
+
+
 def main(argv: Sequence[str]) -> None:
   if len(argv) > 1:
     raise app.UsageError('Too many command-line arguments.')
@@ -147,18 +153,15 @@ def main(argv: Sequence[str]) -> None:
     secret_manager_client = secretmanager.SecretManagerServiceClient()
     secret_path = secret_manager_client.secret_path(FLAGS.project_id,
                                                     FLAGS.cookie_secret_id)
-    versions = secret_manager_client.list_secret_versions(request={
-        'parent': secret_path,
-        'filter': 'state:ENABLED',
-    })
+    versions = [
+        v for v in secret_manager_client.list_secret_versions(
+            parent=secret_path)
+        if v.state == SecretVersion.State.ENABLED]
 
     cookie_secrets = {}
     for version in versions:
-      parsed_version = secret_manager_client.parse_secret_version_path(
-          version.name)
-      response = secret_manager_client.access_secret_version(
-          request={'name': version.name})
-      cookie_secrets[int(parsed_version['secret_version'])] = (
+      response = secret_manager_client.access_secret_version(name=version.name)
+      cookie_secrets[version_from_secret_version_path(version.name)] = (
           base64.b64decode(response.payload.data))
 
     if not cookie_secrets:
