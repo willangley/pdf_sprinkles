@@ -109,6 +109,8 @@ def main(argv: Sequence[str]) -> None:
         seccomp.Arg(
             1, seccomp.EQ, Futex.FUTEX_WAIT_BITSET | Futex.FUTEX_PRIVATE_FLAG
             | Futex.FUTEX_CLOCK_REALTIME))
+    f.add_rule(seccomp.ALLOW, 'sched_getparam')
+    f.add_rule(seccomp.ALLOW, 'sched_getscheduler')
 
     f.load()
 
