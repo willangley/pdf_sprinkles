@@ -12,8 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Stub module for resource filenames."""
+import pdf_sprinkles.convert
+import unittest
 
 
-def GetResourceFilename(name, unused_mode='rb'):
-  return name
+class ConvertTest(unittest.TestCase):
+  def test_imports(self):
+    self.assertTrue(pdf_sprinkles.convert.convert)
+
+
+if __name__ == '__main__':
+  unittest.main()
